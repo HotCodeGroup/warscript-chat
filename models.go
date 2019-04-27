@@ -40,10 +40,22 @@ func (ms *AccessObject) Create(m *MessageModel) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec(`INSERT INTO messages (message, author, conv_id) VALUES($1, $2, $3);`, &m.Message, &m.Author, &m.ConvID)
+	newRow, err := tx.Query(`INSERT INTO messages (message, author, conv_id) VALUES($1, $2, $3) RETURNING id;`, &m.Message, &m.Author, &m.ConvID)
 	if err != nil {
 		return errors.Wrap(err, "message create error")
 	}
+
+	if !newRow.Next() {
+		return errors.Wrap(err, "message create error")
+	}
+	// обновляем структуру, чтобы она содержала валидное имя создателя(учитывая регистр)
+	// и валидный ID
+	err = newRow.Scan(&m.ID)
+	if err != nil {
+		return errors.Wrap(err, "message scan error")
+	}
+
+	newRow.Close()
 
 	err = tx.Commit()
 	if err != nil {
