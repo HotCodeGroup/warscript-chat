@@ -19,13 +19,18 @@ type MessageToClient struct {
 	Message string `json:"message"`
 }
 
+type SignedMessage struct {
+	Author  string `json:"author"`
+	Message string `json:"message"`
+}
+
 type MessageHistoryQuery struct {
 	Limit  int `json:"limit"`
 	Offset int `json:"offset"`
 }
 
 type MessagesResp struct {
-	Messages []*MessageToClient `json:"messages"`
+	Messages []*SignedMessage `json:"messages"`
 }
 
 // WSObject object for ws connections

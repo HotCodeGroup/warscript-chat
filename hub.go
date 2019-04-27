@@ -100,19 +100,20 @@ func (h *Hub) run() {
 				msgs, err := Messages.GetMessagesByConvID(inRaw.ChatID, inMsg.Limit, inMsg.Offset)
 
 				resp := MessagesResp{
-					Messages: make([]*MessageToClient, 0, 0),
+					Messages: make([]*SignedMessage, 0, 0),
 				}
 
 				for _, msg := range msgs {
-					resp.Messages = append(resp.Messages, &MessageToClient{
+					resp.Messages = append(resp.Messages, &SignedMessage{
 						Message: msg.Message.String,
+						Author:  msg.Author.String,
 					})
 				}
 
 				payload, _ := json.Marshal(&resp)
 
 				outRaw = WSObject{
-					Type:    "message",
+					Type:    "messages",
 					ChatID:  inRaw.ChatID,
 					Author:  inRaw.Author,
 					Payload: payload,
