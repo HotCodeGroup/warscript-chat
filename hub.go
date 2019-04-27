@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -14,7 +13,7 @@ type Hub struct {
 	unregister chan *Client
 }
 
-func newHub() *Hub {
+func NewHub() *Hub {
 	return &Hub{
 		broadcast:  make(chan WSObject),
 		register:   make(chan *Client),
@@ -41,7 +40,7 @@ func (h *Hub) run() {
 				var inMsg MessageFromClient
 				err := json.Unmarshal(inRaw.Payload, &inMsg)
 				if err != nil {
-					log.Printf("data in WSObject does not corresponds to type message: %v", err)
+					logger.Errorf("data in WSObject does not corresponds to type message: %v", err)
 					ok = false
 				}
 
@@ -51,10 +50,11 @@ func (h *Hub) run() {
 
 				outRaw = WSObject{
 					Type:    "message",
+					Author:  inRaw.Author,
 					Payload: payload,
 				}
 			default:
-				log.Printf("unknown type in WSObject: `%s`", inRaw.Type)
+				logger.Warnf("unknown type in WSObject: `%s`", inRaw.Type)
 				ok = false
 			}
 			if ok {

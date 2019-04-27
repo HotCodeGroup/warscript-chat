@@ -16,12 +16,7 @@ type MessageToClient struct {
 
 // WSObject object for ws connections
 type WSObject struct {
-	Type    string          `json:"string"`
+	Type    string          `json:"type"`
+	Author  string          `json:"author"`
 	Payload json.RawMessage `json:"payload"`
-}
-
-// SignedMessageToClient simple message with known author
-type SignedMessageToClient struct {
-	Message string `json:"message"`
-	Author  string `json:"author"`
 }

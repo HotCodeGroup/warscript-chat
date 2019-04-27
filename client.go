@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -26,11 +25,16 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+type UserInfo struct {
+	Username string
+}
+
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
 	hub  *Hub
 	conn *websocket.Conn
 	send chan WSObject
+	info UserInfo
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -60,6 +64,7 @@ func (c *Client) readPump() {
 			log.Printf("client msg unmarshal error: %v", err)
 		}
 
+		raw.Author = c.info.Username
 		c.hub.broadcast <- raw
 	}
 }
@@ -111,18 +116,4 @@ func (c *Client) writePump() {
 			}
 		}
 	}
-}
-
-// serveWs handles websocket requests from the peer.
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	client := &Client{hub: hub, conn: conn, send: make(chan WSObject, 256)}
-	client.hub.register <- client
-
-	go client.writePump()
-	go client.readPump()
 }
