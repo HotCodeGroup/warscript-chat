@@ -105,6 +105,7 @@ func (h *Hub) run() {
 
 				for _, msg := range msgs {
 					resp.Messages = append(resp.Messages, &SignedMessage{
+						ID:      msg.ID.Int,
 						Message: msg.Message.String,
 						Author:  msg.Author.String,
 					})

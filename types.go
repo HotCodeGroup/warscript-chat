@@ -16,10 +16,12 @@ type MessageFromClient struct {
 
 // MessageToClient simple anon message
 type MessageToClient struct {
+	ID      int64  `json:"id"`
 	Message string `json:"message"`
 }
 
 type SignedMessage struct {
+	ID      int64  `json:"id"`
 	Author  string `json:"author"`
 	Message string `json:"message"`
 }
