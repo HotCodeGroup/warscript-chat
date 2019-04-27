@@ -4,6 +4,11 @@ import (
 	"encoding/json"
 )
 
+type UserInfo struct {
+	ID       int64  `json:"id"`
+	Username string `json:"username"`
+}
+
 // MessageFromClient simple anon message
 type MessageFromClient struct {
 	Message string `json:"message"`
@@ -18,6 +23,6 @@ type MessageToClient struct {
 type WSObject struct {
 	Type    string          `json:"type"`
 	ChatID  int64           `json:"chat_id"`
-	Author  UserInfo        `json:"author"`
+	Author  *UserInfo       `json:"author"`
 	Payload json.RawMessage `json:"payload"`
 }

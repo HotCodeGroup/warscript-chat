@@ -19,17 +19,12 @@ var (
 	newline = []byte{'\n'}
 )
 
-type UserInfo struct {
-	ID       int64  `json:"id"`
-	Username string `json"username"`
-}
-
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
 	hub  *Hub
 	conn *websocket.Conn
 	send chan WSObject
-	info UserInfo
+	info *UserInfo
 
 	conversations []int64
 }

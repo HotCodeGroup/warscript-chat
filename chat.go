@@ -49,11 +49,6 @@ func ConnectChat(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	username := "anonymous"
-	if infoUser != nil {
-		username = infoUser.Username
-	}
-
 	// тут дальше апгрейд до вебсокета
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -66,14 +61,18 @@ func ConnectChat(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		conn:          conn,
 		send:          make(chan WSObject, 256),
 		conversations: []int64{1},
-		info: UserInfo{
-			Username: username,
-		},
+	}
+
+	if infoUser != nil {
+		client.info = &UserInfo{
+			ID:       infoUser.ID,
+			Username: infoUser.Username,
+		}
 	}
 
 	client.hub.register <- client
 	go client.writePump()
 	go client.readPump()
 
-	logger.Infof("User: %s connected chat", username)
+	logger.Infof("User: %s connected chat", infoUser.Username)
 }

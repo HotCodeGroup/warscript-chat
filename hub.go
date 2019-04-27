@@ -72,11 +72,18 @@ func (h *Hub) run() {
 					Payload: payload,
 				}
 
-				err = Messages.Create(&MessageModel{
+				model := &MessageModel{
 					Message: pgtype.Text{String: inMsg.Message, Status: pgtype.Present},
-					Author:  pgtype.Text{String: inRaw.Author.Username, Status: pgtype.Present},
 					ConvID:  pgtype.Int8{Int: inRaw.ChatID, Status: pgtype.Present},
-				})
+				}
+
+				if inRaw.Author != nil {
+					model.Author = pgtype.Text{String: inRaw.Author.Username, Status: pgtype.Present}
+				} else {
+					model.Author = pgtype.Text{String: "", Status: pgtype.Null}
+				}
+
+				err = Messages.Create(model)
 				if err != nil {
 					logger.Warnf("can not save message: %v", err)
 				}
