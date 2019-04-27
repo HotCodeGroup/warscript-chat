@@ -31,15 +31,15 @@ func init() {
 // User model for users table
 type MessageModel struct {
 	ID       pgtype.Int8
-	message  pgtype.Text
-	authorID pgtype.Int8
-	convID   pgtype.Int8
+	Message  pgtype.Text
+	AuthorID pgtype.Int8
+	ConvID   pgtype.Int8
 }
 
 func (ms *AccessObject) GetMessagesByConvID(id int64, limit int, offset int) ([]*MessageModel, error) {
-
+	return nil, nil
 }
 
 func (ms *AccessObject) Create(u *MessageModel) error {
-
+	return nil
 }

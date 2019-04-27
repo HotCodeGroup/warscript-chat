@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+
+	"github.com/jackc/pgx/pgtype"
 )
 
 // Hub maintains the set of active clients and broadcasts messages to the
@@ -68,6 +70,15 @@ func (h *Hub) run() {
 					ChatID:  inRaw.ChatID,
 					Author:  inRaw.Author,
 					Payload: payload,
+				}
+
+				err = Messages.Create(&MessageModel{
+					Message:  pgtype.Text{String: inMsg.Message, Status: pgtype.Present},
+					AuthorID: pgtype.Int8{Int: inRaw.Author.ID, Status: pgtype.Present},
+					ConvID:   pgtype.Int8{Int: inRaw.ChatID, Status: pgtype.Present},
+				})
+				if err != nil {
+					logger.Warnf("can not save message: %v", err)
 				}
 			default:
 				logger.Warnf("unknown type in WSObject: `%s`", inRaw.Type)
