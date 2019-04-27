@@ -59,6 +59,7 @@ func (h *Hub) run() {
 				if err != nil {
 					logger.Errorf("data in WSObject does not corresponds to type message: %v", err)
 					ok = false
+					break
 				}
 
 				payload, _ := json.Marshal(&MessageToClient{
@@ -86,6 +87,46 @@ func (h *Hub) run() {
 				err = Messages.Create(model)
 				if err != nil {
 					logger.Warnf("can not save message: %v", err)
+				}
+			case "messages":
+				ok = false
+				var inMsg MessageHistoryQuery
+				err := json.Unmarshal(inRaw.Payload, &inMsg)
+				if err != nil {
+					logger.Errorf("data in WSObject does not corresponds to type messages: %v", err)
+					break
+				}
+
+				msgs, err := Messages.GetMessagesByConvID(inRaw.ChatID, inMsg.Limit, inMsg.Offset)
+
+				resp := MessagesResp{
+					Messages: make([]*MessageToClient, 0, 0),
+				}
+
+				for _, msg := range msgs {
+					resp.Messages = append(resp.Messages, &MessageToClient{
+						Message: msg.Message.String,
+					})
+				}
+
+				payload, _ := json.Marshal(&resp)
+
+				outRaw = WSObject{
+					Type:    "message",
+					ChatID:  inRaw.ChatID,
+					Author:  inRaw.Author,
+					Payload: payload,
+				}
+
+				select {
+				case inRaw.client.send <- outRaw:
+				default:
+					close(inRaw.client.send)
+					delete(h.clients[outRaw.ChatID], inRaw.client)
+
+					if len(h.clients[outRaw.ChatID]) == 0 {
+						delete(h.clients, outRaw.ChatID)
+					}
 				}
 			default:
 				logger.Warnf("unknown type in WSObject: `%s`", inRaw.Type)

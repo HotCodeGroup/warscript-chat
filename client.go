@@ -57,6 +57,7 @@ func (c *Client) readPump() {
 		}
 
 		raw.Author = c.info
+		raw.client = c
 		c.hub.broadcast <- raw
 	}
 }
