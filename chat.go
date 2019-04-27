@@ -6,8 +6,17 @@ import (
 
 	"github.com/HotCodeGroup/warscript-utils/models"
 	"github.com/HotCodeGroup/warscript-utils/utils"
+	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true // мы уже прошли слой CORS
+	},
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
 // SessionInfo достаёт инфу о юзере из контекстаs
 func GetSessionInfo(r *http.Request) (*models.SessionPayload, error) {
