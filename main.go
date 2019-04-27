@@ -57,7 +57,7 @@ func main() {
 		handlers.AllowCredentials(),
 	)
 
-	httpPort := os.Getenv("HTTP_PORT")
+	httpPort := os.Getenv("PORT")
 	logger.Infof("Chat HTTP service successfully started at port %s", httpPort)
 	err = http.ListenAndServe(":"+httpPort, corsMiddleware(r))
 	if err != nil {
