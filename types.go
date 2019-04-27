@@ -18,6 +18,6 @@ type MessageToClient struct {
 type WSObject struct {
 	Type    string          `json:"type"`
 	ChatID  int64           `json:"chat_id"`
-	Author  string          `json:"author"`
+	Author  UserInfo        `json:"author"`
 	Payload json.RawMessage `json:"payload"`
 }

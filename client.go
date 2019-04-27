@@ -20,7 +20,8 @@ var (
 )
 
 type UserInfo struct {
-	Username string
+	ID       int64  `json:"id"`
+	Username string `json"username"`
 }
 
 // Client is a middleman between the websocket connection and the hub.
@@ -60,7 +61,7 @@ func (c *Client) readPump() {
 			log.Printf("client msg unmarshal error: %v", err)
 		}
 
-		raw.Author = c.info.Username
+		raw.Author = c.info
 		c.hub.broadcast <- raw
 	}
 }
