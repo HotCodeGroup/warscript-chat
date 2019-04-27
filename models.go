@@ -61,7 +61,7 @@ func (ms *AccessObject) GetMessagesByConvID(id int64, limit int, offset int) ([]
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.Query(`SELECT m.id, m.message, m.author, m.conv_id FROM messages m WHERE conv_id = $1 LIMIT $2 OFFSET $3`, id, limit, offset)
+	rows, err := tx.Query(`SELECT m.id, m.message, m.author, m.conv_id FROM messages m WHERE conv_id = $1 LIMIT $2 OFFSET $3;`, id, limit, offset)
 	msgs := make([]*MessageModel, 0, 0)
 
 	for rows.Next() {
