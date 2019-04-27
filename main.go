@@ -54,7 +54,7 @@ func main() {
 	defer pgxConn.Close()
 
 	authGPRCConn, err := grpc.Dial(
-		"127.0.0.1:8085",
+		os.Getenv("AUTH_ADDRESS"),
 		grpc.WithInsecure(),
 	)
 	if err != nil {

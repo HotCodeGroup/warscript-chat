@@ -20,6 +20,8 @@ var upgrader = websocket.Upgrader{
 
 // SessionInfo достаёт инфу о юзере из контекстаs
 func GetSessionInfo(r *http.Request) (*models.SessionPayload, error) {
+	logger.Infof("%+v", r.Cookies())
+
 	cookie, err := r.Cookie("JSESSIONID")
 	if err != nil || cookie == nil {
 		return nil, errors.Wrap(err, "no cookie")
@@ -74,5 +76,9 @@ func ConnectChat(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	go client.writePump()
 	go client.readPump()
 
-	logger.Infof("User: %+v connected chat", infoUser)
+	if infoUser != nil {
+		logger.Infof("User: %s connected chat", infoUser.Username)
+	} else {
+		logger.Info("User: anonymous connected chat")
+	}
 }
