@@ -25,7 +25,7 @@ type AccessObject struct{}
 var Messages MessageAccessObject
 
 func init() {
-	Messages = &MessageAccessObject{}
+	Messages = &AccessObject{}
 }
 
 // User model for users table
@@ -34,4 +34,12 @@ type MessageModel struct {
 	message  pgtype.Text
 	authorID pgtype.Int8
 	convID   pgtype.Int8
+}
+
+func (ms *AccessObject) GetMessagesByConvID(id int64, limit int, offset int) ([]*MessageModel, error) {
+
+}
+
+func (ms *AccessObject) Create(u *MessageModel) error {
+
 }
