@@ -74,5 +74,9 @@ func ConnectChat(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	go client.writePump()
 	go client.readPump()
 
-	logger.Infof("User: %+v connected chat", infoUser)
+	if infoUser != nil {
+		logger.Infof("User: %s connected chat", infoUser.Username)
+	} else {
+		logger.Info("User: anonymous connected chat")
+	}
 }
