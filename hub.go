@@ -62,17 +62,6 @@ func (h *Hub) run() {
 					break
 				}
 
-				payload, _ := json.Marshal(&MessageToClient{
-					Message: inMsg.Message,
-				})
-
-				outRaw = WSObject{
-					Type:    "message",
-					ChatID:  inRaw.ChatID,
-					Author:  inRaw.Author,
-					Payload: payload,
-				}
-
 				model := &MessageModel{
 					Message: pgtype.Text{String: inMsg.Message, Status: pgtype.Present},
 					ConvID:  pgtype.Int8{Int: inRaw.ChatID, Status: pgtype.Present},
@@ -87,6 +76,20 @@ func (h *Hub) run() {
 				err = Messages.Create(model)
 				if err != nil {
 					logger.Warnf("can not save message: %v", err)
+					ok = false
+					break
+				}
+
+				payload, _ := json.Marshal(&MessageToClient{
+					ID:      model.ID.Int,
+					Message: inMsg.Message,
+				})
+
+				outRaw = WSObject{
+					Type:    "message",
+					ChatID:  inRaw.ChatID,
+					Author:  inRaw.Author,
+					Payload: payload,
 				}
 			case "messages":
 				ok = false
