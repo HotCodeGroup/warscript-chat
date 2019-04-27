@@ -29,6 +29,8 @@ type Client struct {
 	conn *websocket.Conn
 	send chan WSObject
 	info UserInfo
+
+	conversations []int64
 }
 
 // readPump pumps messages from the websocket connection to the hub.

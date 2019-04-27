@@ -62,9 +62,10 @@ func ConnectChat(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		hub:  hub,
-		conn: conn,
-		send: make(chan WSObject, 256),
+		hub:           hub,
+		conn:          conn,
+		send:          make(chan WSObject, 256),
+		conversations: []int64{1},
 		info: UserInfo{
 			Username: username,
 		},

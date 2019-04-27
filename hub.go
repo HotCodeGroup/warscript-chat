@@ -7,7 +7,7 @@ import (
 // Hub maintains the set of active clients and broadcasts messages to the
 // clients.
 type Hub struct {
-	clients    map[*Client]bool
+	clients    map[int64]map[*Client]bool
 	broadcast  chan WSObject
 	register   chan *Client
 	unregister chan *Client
@@ -18,7 +18,7 @@ func NewHub() *Hub {
 		broadcast:  make(chan WSObject),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		clients:    make(map[int64]map[*Client]bool),
 	}
 }
 
@@ -26,11 +26,26 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
-			h.clients[client] = true
+			for _, chatID := range client.conversations {
+				if _, ok := h.clients[chatID]; !ok {
+					h.clients[chatID] = make(map[*Client]bool, 0)
+				}
+
+				h.clients[chatID][client] = true
+			}
+
 		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
-				close(client.send)
+			for _, chatID := range client.conversations {
+				if _, ok := h.clients[chatID]; ok {
+					if _, ok := h.clients[chatID][client]; ok {
+						delete(h.clients[chatID], client)
+						close(client.send)
+					}
+
+					if len(h.clients[chatID]) == 0 {
+						delete(h.clients, chatID)
+					}
+				}
 			}
 		case inRaw := <-h.broadcast:
 			var outRaw WSObject
@@ -50,6 +65,7 @@ func (h *Hub) run() {
 
 				outRaw = WSObject{
 					Type:    "message",
+					ChatID:  inRaw.ChatID,
 					Author:  inRaw.Author,
 					Payload: payload,
 				}
@@ -58,12 +74,16 @@ func (h *Hub) run() {
 				ok = false
 			}
 			if ok {
-				for client := range h.clients {
+				for client := range h.clients[outRaw.ChatID] {
 					select {
 					case client.send <- outRaw:
 					default:
 						close(client.send)
-						delete(h.clients, client)
+						delete(h.clients[outRaw.ChatID], client)
+
+						if len(h.clients[outRaw.ChatID]) == 0 {
+							delete(h.clients, outRaw.ChatID)
+						}
 					}
 				}
 			}
