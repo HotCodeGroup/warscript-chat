@@ -4,8 +4,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/HotCodeGroup/warscript-utils/models"
+	"github.com/jackc/pgx"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -29,6 +31,27 @@ func main() {
 		return
 	}
 	logger.AddHook(le)
+
+	dbPort, err := strconv.ParseInt(os.Getenv("DB_PORT"), 10, 16)
+	if err != nil {
+		logger.Errorf("incorrect database port: %s", err.Error())
+		return
+	}
+
+	pgxConn, err = pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig: pgx.ConnConfig{
+			Host:     os.Getenv("DB_HOST"),
+			User:     os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASS"),
+			Database: os.Getenv("DB_NAME"),
+			Port:     uint16(dbPort),
+		},
+	})
+	if err != nil {
+		logger.Errorf("cant connect to postgresql database: %s", err.Error())
+		return
+	}
+	defer pgxConn.Close()
 
 	authGPRCConn, err := grpc.Dial(
 		"127.0.0.1:8085",
