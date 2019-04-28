@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"time"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/websocket"
 )
@@ -15,9 +16,11 @@ const (
 	maxMessageSize = 512
 )
 
-var (
-	newline = []byte{'\n'}
-)
+func logError(logs *logrus.Entry, msg string, err error) {
+	if err != nil {
+		logs.Errorf("%s: %s", msg, err)
+	}
+}
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
@@ -39,22 +42,38 @@ func (c *Client) readPump() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
+	logs := logger.WithFields(logrus.Fields{
+		"method": "readPump",
+	})
+
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	err := c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	if err != nil {
+		logError(logs, "can not set conn read deadline", err)
+		return
+	}
+
+	c.conn.SetPongHandler(func(string) error {
+		if err = c.conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+			logError(logs, "can not set conn read deadline", err)
+			return err
+		}
+
+		return nil
+	})
+
 	for {
 		_, jsonMsg, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				logError(logs, "unexpected close error", err)
 			}
 			break
 		}
+
 		var raw WSObject
 		err = json.Unmarshal(jsonMsg, &raw)
-		if err != nil {
-			log.Printf("client msg unmarshal error: %v", err)
-		}
+		logError(logs, "client msg unmarshal error", err)
 
 		raw.Author = c.info
 		raw.client = c
@@ -73,38 +92,57 @@ func (c *Client) writePump() {
 		ticker.Stop()
 		c.conn.Close()
 	}()
+
+	logs := logger.WithFields(logrus.Fields{
+		"method": "writePump",
+	})
 	for {
 		select {
 		case raw, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err != nil {
+				logError(logs, "can not set write deadline", err)
+				return
+			}
+
 			if !ok {
 				// The hub closed the channel.
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				err = c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				logError(logs, "can not write close message", err)
 				return
 			}
 
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
+				logError(logs, "can not get next writer", err)
 				return
 			}
+
 			msg, _ := json.Marshal(raw)
-			w.Write(msg)
+			_, err = w.Write(msg)
+			logError(logs, "can not write message", err)
 
 			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
-				w.Write(newline)
+				_, err = w.Write([]byte{'\n'})
+				logError(logs, "can not write newline message", err)
+
 				raw = <-c.send
 				msg, _ := json.Marshal(raw)
-				w.Write(msg)
+				_, err = w.Write(msg)
+				logError(logs, "can not write message", err)
 			}
 
 			if err := w.Close(); err != nil {
 				return
 			}
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			logError(logs, "set write deadline", err)
+
+			if err = c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				logError(logs, "WriteMessage err", err)
 				return
 			}
 		}

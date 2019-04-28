@@ -11,8 +11,7 @@ var pgxConn *pgx.ConnPool
 
 // MessageAccessObject DAO for User model
 type MessageAccessObject interface {
-	GetMessagesByConvID(id int64, limit int, offset int) ([]*MessageModel, error)
-
+	GetMessagesByConvID(id int64, limit, offset int) ([]*MessageModel, error)
 	Create(u *MessageModel) error
 }
 
@@ -38,9 +37,12 @@ func (ms *AccessObject) Create(m *MessageModel) error {
 	if err != nil {
 		return errors.Wrap(err, "can not open message create transaction")
 	}
+
+	//nolint: errcheck
 	defer tx.Rollback()
 
-	newRow, err := tx.Query(`INSERT INTO messages (message, author, conv_id) VALUES($1, $2, $3) RETURNING id;`, &m.Message, &m.Author, &m.ConvID)
+	newRow, err := tx.Query(`INSERT INTO messages (message, author, conv_id)
+							VALUES($1, $2, $3) RETURNING id;`, &m.Message, &m.Author, &m.ConvID)
 	if err != nil {
 		return errors.Wrap(err, "message create error")
 	}
@@ -48,8 +50,8 @@ func (ms *AccessObject) Create(m *MessageModel) error {
 	if !newRow.Next() {
 		return errors.Wrap(err, "message create error")
 	}
-	// обновляем структуру, чтобы она содержала валидное имя создателя(учитывая регистр)
-	// и валидный ID
+
+	// обновляем структуру, чтобы она содержала валидный ID
 	err = newRow.Scan(&m.ID)
 	if err != nil {
 		return errors.Wrap(err, "message scan error")
@@ -66,16 +68,22 @@ func (ms *AccessObject) Create(m *MessageModel) error {
 
 }
 
-func (ms *AccessObject) GetMessagesByConvID(id int64, limit int, offset int) ([]*MessageModel, error) {
+func (ms *AccessObject) GetMessagesByConvID(id int64, limit, offset int) ([]*MessageModel, error) {
 	tx, err := pgxConn.Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "can not open messages get transaction")
 	}
+
+	//nolint: errcheck
 	defer tx.Rollback()
 
-	rows, err := tx.Query(`SELECT m.id, m.message, m.author, m.conv_id FROM messages m WHERE conv_id = $1 ORDER BY m.id DESC LIMIT $2 OFFSET $3;`, id, limit, offset)
-	msgs := make([]*MessageModel, 0, 0)
+	rows, err := tx.Query(`SELECT m.id, m.message, m.author, m.conv_id 
+						FROM messages m WHERE conv_id = $1 ORDER BY m.id DESC LIMIT $2 OFFSET $3;`, id, limit, offset)
+	if err != nil {
+		return nil, errors.Wrap(err, "can not get messages history")
+	}
 
+	msgs := make([]*MessageModel, 0, 0)
 	for rows.Next() {
 		m := &MessageModel{}
 		err := rows.Scan(&m.ID, &m.Message, &m.Author, &m.ConvID)

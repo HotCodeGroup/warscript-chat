@@ -4,14 +4,13 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
+	"github.com/HotCodeGroup/warscript-utils/logging"
 	"github.com/HotCodeGroup/warscript-utils/models"
-	"github.com/jackc/pgx"
+	"github.com/HotCodeGroup/warscript-utils/postgresql"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/jcftang/logentriesrus"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -20,35 +19,17 @@ var logger *logrus.Logger
 var authGPRC models.AuthClient
 
 func main() {
-	logger = logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetOutput(os.Stdout)
-
-	// собираем логи в хранилище
-	le, err := logentriesrus.NewLogentriesrusHook(os.Getenv("LOGENTRIESRUS_TOKEN"))
+	var err error
+	logger, err = logging.NewLogger(os.Stdout, os.Getenv("LOGENTRIESRUS_TOKEN"))
 	if err != nil {
-		log.Printf("can not create logrus logger %s", err)
-		return
-	}
-	logger.AddHook(le)
-
-	dbPort, err := strconv.ParseInt(os.Getenv("DB_PORT"), 10, 16)
-	if err != nil {
-		logger.Errorf("incorrect database port: %s", err.Error())
+		log.Printf("can not create logger: %s", err)
 		return
 	}
 
-	pgxConn, err = pgx.NewConnPool(pgx.ConnPoolConfig{
-		ConnConfig: pgx.ConnConfig{
-			Host:     os.Getenv("DB_HOST"),
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASS"),
-			Database: os.Getenv("DB_NAME"),
-			Port:     uint16(dbPort),
-		},
-	})
+	pgxConn, err = postgresql.Connect(os.Getenv("DB_USER"), os.Getenv("DB_PASS"),
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
 	if err != nil {
-		logger.Errorf("cant connect to postgresql database: %s", err.Error())
+		logger.Errorf("can not connect to postgresql database: %s", err.Error())
 		return
 	}
 	defer pgxConn.Close()

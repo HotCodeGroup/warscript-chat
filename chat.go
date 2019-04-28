@@ -44,7 +44,6 @@ func ConnectChat(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	var infoUser *models.InfoUser
 	if info != nil {
-		var err error
 		infoUser, err = authGPRC.GetUserByID(context.Background(), &models.UserID{ID: info.ID})
 		if err != nil {
 			logger.Warnf("can not get user info from grpc service: %s", err.Error())

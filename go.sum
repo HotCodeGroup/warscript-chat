@@ -4,12 +4,15 @@ github.com/HotCodeGroup/warscript-imageserver v0.0.0-20190401214303-52ec590a471d
 github.com/HotCodeGroup/warscript-imageserver v0.0.0-20190401214303-52ec590a471d/go.mod h1:iJFZDm8OMEKusC9/JwX4ZDCviKltqqEbX3Nv1zs+QBM=
 github.com/HotCodeGroup/warscript-utils v0.0.0-20190426205425-cc25fb368865 h1:A1kqKEtI9PHI7l9h1S9ToJ/lgIa4GkNUa8MqGzqLqUU=
 github.com/HotCodeGroup/warscript-utils v0.0.0-20190426205425-cc25fb368865/go.mod h1:qPFYwh0N/vXepbQgZiiVCEzu0e75nLkReEG7rWtwbAg=
+github.com/HotCodeGroup/warscript-utils v0.0.0-20190428100847-cde473768f6e h1:flLnbUv44K69YIxCQc7Gb2uWo2ttVmWDip0Br3R7bek=
+github.com/HotCodeGroup/warscript-utils v0.0.0-20190428100847-cde473768f6e/go.mod h1:ni0SgKU8mYZMxD8BqTGr2dMDtsCDCwy0ZXe+no9PkUQ=
 github.com/aws/aws-sdk-go v1.19.7 h1:BEKPfM8DPsXIsz1zL98nSbYqsOUjUM2lm93XLZL0qY8=
 github.com/aws/aws-sdk-go v1.19.7/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/bsphere/le_go v0.0.0-20170215134836-7a984a84b549 h1:QJJnIXZ34OUK5JfWlq1l3n0SfO9g1amiLFIcTECgpq0=
 github.com/bsphere/le_go v0.0.0-20170215134836-7a984a84b549/go.mod h1:313oBJKClgRD/+t59eUnrfG7/xHXZJd7v+SjCacDm4Q=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/go-redis/redis v6.15.2+incompatible/go.mod h1:NAIEuMOZ/fxfXJIrKDQDz8wamY7mA7PouImQ2Jvg6kA=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
